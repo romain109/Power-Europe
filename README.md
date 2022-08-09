@@ -13,7 +13,7 @@ Extrapolation:
 Curve D avec D-1:
 - determiner un modele pour creer une forward curve avec celles du passe: etudier question des croissances moyennes ou des RNN
 
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 Planning retrospectif:
 
 08/08: creation du repo partage
