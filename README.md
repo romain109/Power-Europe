@@ -17,3 +17,5 @@ Curve D avec D-1:
 Planning retrospectif:
 
 08/08: creation du repo partage
+09/08: creation du module mod (avec les fonctions persos), recuperation des consensus markit a partir du folder W:\UK\Risk_Control\Risk_Control_Private\MiddleOffice\GPE\Prices\Price Check Tool\Export\Mark-It Raw
+
