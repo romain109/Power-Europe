@@ -1,8 +1,15 @@
+'''
+
+Module Librairies: recap de toutes nos fonctions et trucs utiles
+
+'''
+
 # Definition de la fonction de prix Medeco
 import requests
 from requests_kerberos import HTTPKerberosAuth
 import datetime as dt
 import pandas as pd
+
 proxyAddress = 'http://proxymwg:8080'
 medeco_protocol = 'https'
 medeco_server = 'api-medeco.dts.corp.local'
@@ -10,7 +17,7 @@ medeco_server_NP1 = 'api-medeco-dev.dts.corp.local:'
 medeco_port = ''
 medeco_dt_format ='%Y-%m-%d'
 
-def medeco_get_values(medeco_series: str, dt_from: dt.datetime, dt_to: dt.datetime, radicalDef: str,
+def medeco_get_values(medeco_series: str, dt_from: dt.datetime,  dt_to: dt.datetime, radicalDef: str,
 					  frequency: float = 1, server = 'prod', format='df'):
 
 	'''Function that fetches data from Medeco through the Rest API
@@ -33,7 +40,7 @@ def medeco_get_values(medeco_series: str, dt_from: dt.datetime, dt_to: dt.dateti
 				  'to': dt_to.strftime(medeco_dt_format),
 				  'radical': radicalDef, 'frequency': int(frequency)}
 
-	req = requests.get(url, auth=HTTPKerberosAuth(), verify=False, params=parameters)
+	req = requests.get(url, auth = HTTPKerberosAuth(), verify=False, params=parameters)
 	response = req.json()
 
 	if format.lower() == 'df':
@@ -45,3 +52,4 @@ def medeco_get_values(medeco_series: str, dt_from: dt.datetime, dt_to: dt.dateti
 		result = response['values']
 
 	return result
+
