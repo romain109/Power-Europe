@@ -21,6 +21,6 @@ Planning retrospectif:
 
 - donnes markit ok avril
 
-10/08: calcul std dev moyenne sur chaque maturit/index
+10/08: donnees csv correctes, calcul std dev moyenne sur chaque maturit/index, run le script pour les mois restants
 
 
