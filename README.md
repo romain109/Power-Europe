@@ -23,5 +23,5 @@ Planning retrospectif:
 
 10/08: donnees csv correctes, calcul std dev moyenne sur chaque maturite/index, run le script pour les mois restants
 12/08: Analyse France | Allemagne debutees dans la joie et la bonnne humeur
-
+15/08: division periode entre mois, quarters et annees, subdivision avant 12/23 et apres
 
