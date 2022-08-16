@@ -1,0 +1,23 @@
+recuperation mo curve trader via excel
+data = pd.read_csv(r"W:\UK\Trading_Public\FrontOffice\Trading Marks\Power\ExportforMiddle 12-08-22.csv", decimal="." , thousands=',' ,  index_col = False)
+data.dropna(inplace = True)
+data
+data_fr  = data.loc[: , ["Maturity", "ELEC_FR.B"]]
+data_fr.set_index(data["Maturity"], inplace = True)
+data_fr.drop(["Maturity"], axis = 1,  inplace =  True)
+data_fr['ELEC_FR.B'] = pd.to_numeric(data_fr['ELEC_FR.B'])
+data_fr
+
+creation marge d'acceptation
+data_fr_quarters = data_fr[data_fr.index.str.contains("Q")]
+data_fr_quarters["+ std"] = data_fr_quarters["ELEC_FR.B"] + 20
+data_fr_quarters["- std"] = data_fr_quarters["ELEC_FR.B"] - 20
+
+plot
+plt.figure(figsize=(30, 10))
+plt.xlabel('Maturity')
+plt.ylabel('Prices')
+data_fr_quarters["- std"].plot()
+data_fr_quarters["ELEC_FR.B"].plot()
+data_fr_quarters["+ std"].plot()
+plt.fill_between(data_fr_quarters.index, data_fr_quarters["+ std"], data_fr_quarters["- std"], alpha = 0.1, color = 'g')
