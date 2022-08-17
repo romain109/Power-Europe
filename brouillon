@@ -21,3 +21,6 @@ data_fr_quarters["- std"].plot()
 data_fr_quarters["ELEC_FR.B"].plot()
 data_fr_quarters["+ std"].plot()
 plt.fill_between(data_fr_quarters.index, data_fr_quarters["+ std"], data_fr_quarters["- std"], alpha = 0.1, color = 'g')
+
+
+requete http: 
