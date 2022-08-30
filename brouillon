@@ -23,4 +23,27 @@ data_fr_quarters["+ std"].plot()
 plt.fill_between(data_fr_quarters.index, data_fr_quarters["+ std"], data_fr_quarters["- std"], alpha = 0.1, color = 'g')
 
 
-requete http: 
+from qpython import qconnection 
+import pandas as pd 
+import numpy as np 
+from datetime import datetime
+
+kdb_date = "2022-01-19"
+kdb_date = kdb_date.replace('-','.')
+print(kdb_date)
+
+
+## Open a connection to kdb 
+q = qconnection.QConnection(host = 'kdb.dts.corp.local',port=8004,username='Administrator',password='password', pandas=True)
+
+## Retreives data from KDB
+q.open()
+kdb_trades=q.sendSync('.engie.getAssessmentsPrices('+kdb_date+')')
+q.close() 
+
+## kdb symbols/strings returned as python byte strings -- convert these to regular strings 
+bstr_cols = kdb_trades.select_dtypes([object]).columns
+for i in bstr_cols:
+    kdb_trades[i]=kdb_trades[i].apply(lambda x: x.decode('latin'))
+    
+Alteryx.write(kdb_trades,1)#le num depend du nb de l'output, ici 1
