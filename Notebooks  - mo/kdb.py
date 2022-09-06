@@ -6,7 +6,7 @@ def kdb(date:str, index:str):
     from datetime import datetime
     import movecolumn as mc
 
-    print ("mawaraqwt")
+    print ("mat")
     kdb_date = date
     kdb_date = kdb_date.replace('-','.')
  
@@ -23,7 +23,6 @@ def kdb(date:str, index:str):
     for i in bstr_cols:
         kdb_trades[i]=kdb_trades[i].apply(lambda x: x.decode('latin'))
 
-    print(kdb_trades.columns)
 
     if "iceeodfutures" in kdb_trades.columns:
         columns = ['date', 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE','markit consensus', 'markit deviation', 'eexpower', 'iceeodfutures', 'skylight consensus', 'RISK',  'RULE',  'VALIDATION_STATUS', 'COMMENT']
@@ -79,14 +78,14 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
         kdb_trades["Ice Delta"] = kdb_trades["TGP"] - kdb_trades["Ice"]
         delta.append("Ice Delta")
     else:
-        kdb_trades = kdb_trades
+        pass
 
 
     if "Skylight" in kdb_trades.columns:
         kdb_trades["Skylight Delta"] = kdb_trades["TGP"] - kdb_trades["Skylight"]
         delta.append("Skylight Delta")
     else:
-        kdb_trades = kdb_trades
+        pass
 
 
     kdb_trades["EEX Delta"] = kdb_trades["TGP"] - kdb_trades["EEX"]
@@ -124,6 +123,6 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
     plt.legend()
     plt.show();
 
-    return kdb_trades
+    return 
  
 
