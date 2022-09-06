@@ -1,4 +1,4 @@
-def kdb( date:str, index:str):
+def kdb(date:str, index:str, **period:str):
 
     from qpython import qconnection 
     import pandas as pd 
@@ -6,12 +6,10 @@ def kdb( date:str, index:str):
     from datetime import datetime
     import movecolumn as mc
 
-    print(date)
+    print " maj"
     kdb_date = date
-    print(date)
     kdb_date = kdb_date.replace('-','.')
-    print(kdb_date)
-
+ 
     ## Open a connection to kdb 
     q = qconnection.QConnection(host = 'kdb.dts.corp.local',port=8004,username='Administrator',password='password', pandas=True)
 
@@ -35,12 +33,17 @@ def kdb( date:str, index:str):
         columns = ['date', 'ASSESS_DATE' , 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE', 'RULE', 'eexpower', 'RISK', 'VALIDATION_STATUS', 'COMMENT' ]
 
     kdb_trades = kdb_trades.loc[:,columns]
+    kdb_trades["Index"] = kdb_trades["INDEX1"] + "_" + kdb_trades["PROFILE"]
+    kdb_trades.drop(['INDEX1', 'PROFILE'], axis=1, inplace = True)
 
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".M"),"Contract type"] = "Month"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".Q"),"Contract type"] = "Quarter"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".CAL"),"Contract type"] = "Year"
     kdb_trades.dropna(subset = "Contract type", inplace = True)
     kdb_trades = mc.MoveToN(kdb_trades,'Contract type',6)
-    kdb_trades = kdb_trades.loc[kdb_trades['INDEX1'] == index,:]
+    kdb_trades = kdb_trades.loc[kdb_trades['Index'] == index,:]
+    kdb_trades = kdb_trades.loc[kdb_trades['Contract type'] == period,:]
+
 
     return kdb_trades
+
