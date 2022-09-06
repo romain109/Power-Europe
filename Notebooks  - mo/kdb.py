@@ -6,7 +6,7 @@ def kdb(date:str, index:str):
     from datetime import datetime
     import movecolumn as mc
 
-    print ("mawarae")
+    print ("mawaraqwt")
     kdb_date = date
     kdb_date = kdb_date.replace('-','.')
  
@@ -23,14 +23,16 @@ def kdb(date:str, index:str):
     for i in bstr_cols:
         kdb_trades[i]=kdb_trades[i].apply(lambda x: x.decode('latin'))
 
-    if "ice" in kdb_trades.columns:
-        columns = ['date', 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE','markit consensus', 'markit deviation', 'eexpower', 'ice', 'skylight consensus', 'RISK',  'RULE',  'VALIDATION_STATUS', 'COMMENT']
+    print(kdb_trades.columns)
+
+    if "iceeodfutures" in kdb_trades.columns:
+        columns = ['date', 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE','markit consensus', 'markit deviation', 'eexpower', 'iceeodfutures', 'skylight consensus', 'RISK',  'RULE',  'VALIDATION_STATUS', 'COMMENT']
         columns_corrected = ['Date', 'INDEX1', 'PROFILE', 'CONTRACT', 'Start Date','TGP','Markit','Markit Std', 'EEX', 'Ice', 'Skylight', 'Risk', 'Rule', 'Validation_status', 'Comment']
         if "skylight consensus" in columns:
-                columns = ['date', 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE', 'markit consensus', 'markit deviation','eexpower', 'ice', 'skylight consensus', 'RISK', 'RULE', 'VALIDATION_STATUS', 'COMMENT']
+                columns = ['date', 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE', 'markit consensus', 'markit deviation','eexpower', 'iceeodfutures', 'skylight consensus', 'RISK', 'RULE', 'VALIDATION_STATUS', 'COMMENT']
                 columns_corrected = ['Date', 'INDEX1', 'PROFILE', 'CONTRACT', 'Start Date','TGP', 'Markit', 'Markit Std', 'EEX', 'Ice', 'Skylight', 'Risk', 'Rule','Validation_status', 'Comment' ]
         else: 
-            columns = ['date', 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE', 'markit consensus', 'markit deviation','eexpower', 'ice', 'RISK','RULE', 'VALIDATION_STATUS', 'COMMENT']
+            columns = ['date', 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE', 'markit consensus', 'markit deviation','eexpower', 'iceeodfutures', 'RISK','RULE', 'VALIDATION_STATUS', 'COMMENT']
             columns_corrected = ['Date', 'INDEX1', 'PROFILE', 'CONTRACT', 'Start Date','TGP', 'Markit','Markit Std','EEX', 'Ice', 'Risk', 'Rule', 'Validation_status', 'Comment']
     else: 
         columns = ['date',  'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE', 'markit consensus','markit deviation','eexpower', 'RISK', 'RULE', 'VALIDATION_STATUS', 'COMMENT']
@@ -56,7 +58,6 @@ def kdb(date:str, index:str):
     kdb_trades.dropna(subset = "Contract type", inplace = True)
     kdb_trades = mc.MoveToN(kdb_trades,'Contract type', 3)
 
-    
     return kdb_trades
 
 
@@ -68,7 +69,7 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
     import re
 
     kdb_trades = kdb_trades.loc[kdb_trades["Contract type"] == period, :]
-    kdb_trades.drop(['Rule', 'Comment', 'Validation_status'], axis = 1, inplace = True)
+    kdb_trades.drop(['Rule', 'Comment', 'Validation_status', 'Risk'], axis = 1, inplace = True)
 
 
     # creation des colonnes des deltas
@@ -90,16 +91,9 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
 
     kdb_trades["EEX Delta"] = kdb_trades["TGP"] - kdb_trades["EEX"]
     kdb_trades["Markit Delta"] = kdb_trades["TGP"] - kdb_trades["Markit"]
-    delta.append("EEX Delta")
-    delta.append("Markit Delta")
 
     # determination des colonnes delta presente
     
-    mylist = kdb_trades.columns
-    r = re.compile(".*Delta")
-    newlist = list(filter(r.match, mylist))
-
-
     plt.figure(figsize = (30, 10), dpi = 650)
     plt.style.use('seaborn')
     plt.bar(kdb_trades["Start Date"] , kdb_trades["Markit Delta"], width = 5 ,  label = "Markit Delta", color = 'royalblue')
@@ -109,20 +103,20 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
     if Ice == True:
         plt.scatter(kdb_trades["Start Date"] , kdb_trades["Ice Delta"], label = "Ice Delta",  color = 'dodgerblue', marker = 'o', s = 15)
     else:
-        a = 0
+        pass
 
     if Skylight == True:
         plt.scatter(kdb_trades["Start Date"] , kdb_trades["Skylight Delta"], label = "Skylight Delta",  color = 'g', marker = 'o', s = 15)
     else: 
-        a = 0
+        pass
 
 
     plt.scatter(kdb_trades["Start Date"] , kdb_trades["EEX Delta"], label = "EEX Delta",  color = 'crimson', marker = 'o', s = 15)
-    plt.fill_between(kdb_trades["start_date"], kdb_trades["Markit Std"], -kdb_trades["Markit Std"] , alpha = 0.1, color = 'g')
-    plt.axhline(y=0.2, color='r', linestyle=(0,(1,1)), label = " Current threshold")
-    plt.axhline(y=-0.2, color='r', linestyle=(0,(1,1)))
-    plt.axhline(y=12.42, color = 'royalblue', linestyle=(0,(1,1)))
-    plt.axhline(y=-12.42, color='royalblue', linestyle=(0,(1,1)))
+    plt.fill_between(kdb_trades["Start Date"], kdb_trades["Markit Std"], -kdb_trades["Markit Std"] , alpha = 0.1, color = 'g')
+    plt.axhline(y = 0.2, color='r', linestyle=(0,(1,1)), label = " Current threshold")
+    plt.axhline(y = -0.2, color='r', linestyle=(0,(1,1)))
+    plt.axhline(y = 12.42, color = 'royalblue', linestyle=(0,(1,1)))
+    plt.axhline(y = -12.42, color='royalblue', linestyle=(0,(1,1)))
     plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 180))
     plt.title("Std Deviation Price Validation")
     plt.xlabel("Maturity")
@@ -131,4 +125,5 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
     plt.show();
 
     return kdb_trades
+ 
 
