@@ -1,16 +1,19 @@
 import warnings
 warnings.filterwarnings("ignore")
 
+import pandas as pd 
+import numpy as np 
+from datetime import datetime
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import seaborn as sns
+import re
+import movecolumn as mc
+from qpython import qconnection 
 
 def kdb(date:str, index:str):
 
-    from qpython import qconnection 
-    import pandas as pd 
-    import numpy as np 
-    from datetime import datetime
-    import movecolumn as mc
-
-    print ("mate")
+    print ("Data retrieved from kdb ...")
     kdb_date = date
     kdb_date = kdb_date.replace('-','.')
  
@@ -31,15 +34,19 @@ def kdb(date:str, index:str):
     if "iceeodfutures" in kdb_trades.columns:
         columns = ['date', 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE','markit consensus', 'markit deviation', 'eexpower', 'iceeodfutures', 'skylight consensus', 'RISK',  'RULE',  'VALIDATION_STATUS', 'COMMENT']
         columns_corrected = ['Date', 'INDEX1', 'PROFILE', 'CONTRACT', 'Start Date','TGP','Markit','Markit Std', 'EEX', 'Ice', 'Skylight', 'Risk', 'Rule', 'Validation_status', 'Comment']
-        if "skylight consensus" in columns:
+
+        if "skylight consensus" in kdb_trades.columns:
                 columns = ['date', 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE', 'markit consensus', 'markit deviation','eexpower', 'iceeodfutures', 'skylight consensus', 'RISK', 'RULE', 'VALIDATION_STATUS', 'COMMENT']
                 columns_corrected = ['Date', 'INDEX1', 'PROFILE', 'CONTRACT', 'Start Date','TGP', 'Markit', 'Markit Std', 'EEX', 'Ice', 'Skylight', 'Risk', 'Rule','Validation_status', 'Comment' ]
+            
         else: 
             columns = ['date', 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE', 'markit consensus', 'markit deviation','eexpower', 'iceeodfutures', 'RISK','RULE', 'VALIDATION_STATUS', 'COMMENT']
             columns_corrected = ['Date', 'INDEX1', 'PROFILE', 'CONTRACT', 'Start Date','TGP', 'Markit','Markit Std','EEX', 'Ice', 'Risk', 'Rule', 'Validation_status', 'Comment']
+ 
     else: 
         columns = ['date',  'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE', 'markit consensus','markit deviation','eexpower', 'RISK', 'RULE', 'VALIDATION_STATUS', 'COMMENT']
         columns_corrected = ['Date',  'INDEX1', 'PROFILE', 'CONTRACT', 'Start Date','TGP', 'Markit','Markit Std','EEX', 'Risk',  'Rule', 'Validation_status', 'Comment']
+ 
 
     kdb_trades = kdb_trades.loc[:,columns]
     kdb_trades.columns = columns_corrected
@@ -51,12 +58,12 @@ def kdb(date:str, index:str):
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".Q"),"Contract type"] = "Quarter"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".CAL"),"Contract type"] = "Year"
     kdb_trades.drop(['CONTRACT'], axis = 1, inplace = True)
-
+    kdb_trades = kdb_trades.set_index(['Date'])
+  
     #cleaning de l'output 'NoRuleDefined'
     kdb_trades = kdb_trades[kdb_trades['Rule']!="NoRuleDefined"]
     kdb_trades["Start Date"] = pd.to_datetime(kdb_trades["Start Date"])
-    kdb_trades.dropna(subset = "Start Date", inplace = True)
-    kdb_trades.drop_duplicates(subset = "Risk", inplace = True)
+    kdb_trades.drop_duplicates(subset = ["Start Date","Contract type"], inplace = True)
     kdb_trades.dropna(subset = "Contract type", inplace = True)
     kdb_trades = mc.MoveToN(kdb_trades,'Contract type', 3)
 
@@ -76,7 +83,6 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
 
     # creation des colonnes des deltas
 
-  
     if "Ice" in kdb_trades.columns:
         kdb_trades["Ice Delta"] = kdb_trades["TGP"] - kdb_trades["Ice"]
     else:
@@ -109,38 +115,58 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
         pass
 
     # plot du graph
-    plt.scatter(kdb_trades["Start Date"] , kdb_trades["EEX Delta"], label = "EEX Delta",  color = 'crimson', marker = 'o', s = 15)
+    plt.scatter(kdb_trades["Start Date"], kdb_trades["EEX Delta"], label = "EEX Delta",  color = 'crimson', marker = 'o', s = 15)
     plt.fill_between(kdb_trades["Start Date"], kdb_trades["Markit Std"], -kdb_trades["Markit Std"] , alpha = 0.1, color = 'g')
     plt.axhline(y = 0.2, color='r', linestyle=(0,(1,1)), label = " Current threshold")
     plt.axhline(y = -0.2, color='r', linestyle=(0,(1,1)))
     plt.axhline(y = 12.42, color = 'royalblue', linestyle=(0,(1,1)))
     plt.axhline(y = -12.42, color='royalblue', linestyle=(0,(1,1)))
+    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 180))
 
-    if period == "Month":
-        plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 180))
-    elif period == "Quarter":
-        plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 60))
-    else :
-        plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 180))
+    index = kdb_trades["Index"].iloc[0]
+    date = kdb_trades.index.iloc[0]
 
-
-    plt.title("Std Deviation Price Validation")
+    plt.title(f"Std Deviation Price Validation - {index} - {period} - {date}")
     plt.xlabel("Maturity")
     plt.ylabel("Discrepancy €")
+    plt.xticks(rotation=90)
     plt.legend()
-    plt.show();
 
     return 
  
-def kdb_plot_fwd_curve(kdb_trades, Ice = True,  Skylight = True):
-    plt.figure(figsize = (30, 10))
+def kdb_plot_fwd_curve(kdb_trades, period, Ice = True,  Skylight = True):
 
+    # on choisit le type de maturite a display
+    kdb_trades = kdb_trades.loc[kdb_trades["Contract type"] == period, :]
+
+
+    # plot du graph 
+    plt.figure(figsize = (30, 10), dpi = 650)
     plt.style.use('seaborn')
 
-    plt.plot(France_bl["Start Date"] , France_bl["TGP"], label = "TGP")
-    plt.plot(France_bl["Start Date"] , France_bl["Markit"], label = "Markit")
-    plt.plot(France_bl["Start Date"] , France_bl["Skylight"], label = "Skylight")
-    plt.plot(France_bl["Start Date"] , France_bl["Ice"], label = "Ice")
-    plt.plot(France_bl["Start Date"] , France_bl["EEX"], label = "EEX")
+    if Skylight == True:
+        plt.plot(kdb_trades["Start Date"] , kdb_trades["Skylight"], label = "Skylight",  color = 'dodgerblue')
+    else:
+        pass
+
+    if Ice == True:
+        plt.plot(kdb_trades["Start Date"] , kdb_trades["Ice"], label = "Ice",  color = 'purple')
+    else: 
+        pass
+
+    plt.plot(kdb_trades["Start Date"] , kdb_trades["TGP"], label = "TGP")
+    plt.plot(kdb_trades["Start Date"] , kdb_trades["Markit"], label = "Markit")
+    plt.plot(kdb_trades["Start Date"] , kdb_trades["EEX"], label = "EEX")
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 180))
+
+    index = kdb_trades["Index"].iloc[0]
+    date = kdb_trades.index[0]
+
+    plt.title(f"Forward Curve - {index} - {period} - {date}")
+    plt.xlabel("Maturity")
+    plt.ylabel("Price €")
+    plt.xticks(rotation=90)
+    plt.legend()
+
+    return
