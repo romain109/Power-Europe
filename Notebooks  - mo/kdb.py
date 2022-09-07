@@ -1,3 +1,7 @@
+import warnings
+warnings.filterwarnings("ignore")
+
+
 def kdb(date:str, index:str):
 
     from qpython import qconnection 
@@ -6,7 +10,7 @@ def kdb(date:str, index:str):
     from datetime import datetime
     import movecolumn as mc
 
-    print ("mat")
+    print ("mate")
     kdb_date = date
     kdb_date = kdb_date.replace('-','.')
  
@@ -51,9 +55,8 @@ def kdb(date:str, index:str):
     #cleaning de l'output 'NoRuleDefined'
     kdb_trades = kdb_trades[kdb_trades['Rule']!="NoRuleDefined"]
     kdb_trades["Start Date"] = pd.to_datetime(kdb_trades["Start Date"])
-    kdb_trades.dropna(subset = "Contract type", inplace = True)
-    kdb_trades.dropna(subset = "Markit", inplace = True)
-    kdb_trades.dropna(subset = "Risk", inplace = True)
+    kdb_trades.dropna(subset = "Start Date", inplace = True)
+    kdb_trades.drop_duplicates(subset = "Risk", inplace = True)
     kdb_trades.dropna(subset = "Contract type", inplace = True)
     kdb_trades = mc.MoveToN(kdb_trades,'Contract type', 3)
 
@@ -73,20 +76,16 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
 
     # creation des colonnes des deltas
 
-    delta = []
+  
     if "Ice" in kdb_trades.columns:
         kdb_trades["Ice Delta"] = kdb_trades["TGP"] - kdb_trades["Ice"]
-        delta.append("Ice Delta")
     else:
         pass
-
 
     if "Skylight" in kdb_trades.columns:
         kdb_trades["Skylight Delta"] = kdb_trades["TGP"] - kdb_trades["Skylight"]
-        delta.append("Skylight Delta")
     else:
         pass
-
 
     kdb_trades["EEX Delta"] = kdb_trades["TGP"] - kdb_trades["EEX"]
     kdb_trades["Markit Delta"] = kdb_trades["TGP"] - kdb_trades["Markit"]
@@ -109,14 +108,22 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
     else: 
         pass
 
-
+    # plot du graph
     plt.scatter(kdb_trades["Start Date"] , kdb_trades["EEX Delta"], label = "EEX Delta",  color = 'crimson', marker = 'o', s = 15)
     plt.fill_between(kdb_trades["Start Date"], kdb_trades["Markit Std"], -kdb_trades["Markit Std"] , alpha = 0.1, color = 'g')
     plt.axhline(y = 0.2, color='r', linestyle=(0,(1,1)), label = " Current threshold")
     plt.axhline(y = -0.2, color='r', linestyle=(0,(1,1)))
     plt.axhline(y = 12.42, color = 'royalblue', linestyle=(0,(1,1)))
     plt.axhline(y = -12.42, color='royalblue', linestyle=(0,(1,1)))
-    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 180))
+
+    if period == "Month":
+        plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 180))
+    elif period == "Quarter":
+        plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 60))
+    else :
+        plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 180))
+
+
     plt.title("Std Deviation Price Validation")
     plt.xlabel("Maturity")
     plt.ylabel("Discrepancy €")
@@ -125,4 +132,15 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
 
     return 
  
+def kdb_plot_fwd_curve(kdb_trades, Ice = True,  Skylight = True):
+    plt.figure(figsize = (30, 10))
 
+    plt.style.use('seaborn')
+
+    plt.plot(France_bl["Start Date"] , France_bl["TGP"], label = "TGP")
+    plt.plot(France_bl["Start Date"] , France_bl["Markit"], label = "Markit")
+    plt.plot(France_bl["Start Date"] , France_bl["Skylight"], label = "Skylight")
+    plt.plot(France_bl["Start Date"] , France_bl["Ice"], label = "Ice")
+    plt.plot(France_bl["Start Date"] , France_bl["EEX"], label = "EEX")
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 180))
