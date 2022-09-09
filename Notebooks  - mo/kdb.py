@@ -13,7 +13,7 @@ from qpython import qconnection
 
 def kdb(date:str, index:str):
 
-    print ("Data retrieved from kdb ...")
+    print (f"Data retrieved from kdb for {date}")
     kdb_date = date
     kdb_date = kdb_date.replace('-','.')
  
@@ -105,12 +105,18 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
     plt.plot(kdb_trades["Start Date"] , -kdb_trades["Markit Std"], label = " - Markit Std",  color = 'g')
     
     if Ice == True:
-        plt.scatter(kdb_trades["Start Date"] , kdb_trades["Ice Delta"], label = "Ice Delta",  color = 'dodgerblue', marker = 'o', s = 15)
+        try:
+            plt.scatter(kdb_trades["Start Date"] , kdb_trades["Ice Delta"], label = "Ice Delta",  color = 'dodgerblue', marker = 'o', s = 15)
+        except:
+            print("Ice Data not in timeserie")
     else:
         pass
 
     if Skylight == True:
-        plt.scatter(kdb_trades["Start Date"] , kdb_trades["Skylight Delta"], label = "Skylight Delta",  color = 'g', marker = 'o', s = 15)
+        try:
+            plt.scatter(kdb_trades["Start Date"] , kdb_trades["Skylight Delta"], label = "Skylight Delta",  color = 'g', marker = 'o', s = 15)
+        except:
+            print("Skylight Data not in timeserie")
     else: 
         pass
 

@@ -47,3 +47,5 @@ for i in bstr_cols:
     kdb_trades[i]=kdb_trades[i].apply(lambda x: x.decode('latin'))
     
 Alteryx.write(kdb_trades,1)#le num depend du nb de l'output, ici 1
+
+pd.merge(Markit, Markit_1, left_index=True, right_index=True, how = 'left')
