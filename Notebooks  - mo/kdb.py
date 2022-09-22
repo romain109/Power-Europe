@@ -59,6 +59,7 @@ def kdb(date:str, index:str):
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".D"),"Contract type"] = "Day"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".BOM"),"Contract type"] = "BOM"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".W"),"Contract type"] = "Week"
+    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".WE"),"Contract type"] = "WE"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".M"),"Contract type"] = "Month"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".Q"),"Contract type"] = "Quarter"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".CAL"),"Contract type"] = "Year"
@@ -181,3 +182,58 @@ def kdb_plot_fwd_curve(kdb_trades, period, Ice = True,  Skylight = True):
     plt.legend()
 
     return
+
+
+def Markit(date:str, index:str):
+    
+    print (f"Data retrieved from kdb for {date}")
+    kdb_date = date
+    kdb_date = kdb_date.replace('-','.')
+ 
+    ## Open a connection to kdb 
+    q = qconnection.QConnection(host = 'kdb.dts.corp.local',port = 8004,username = 'Administrator',password = 'password', pandas = True)
+
+    ## Retrieves data from KDB
+    q.open()
+    kdb_trades=q.sendSync('.engie.getAssessmentsPrices('+kdb_date+')')
+    q.close() 
+
+    ## kdb symbols/strings returned as python byte strings -- convert these to regular strings 
+    bstr_cols = kdb_trades.select_dtypes([object]).columns
+    for i in bstr_cols:
+        kdb_trades[i]=kdb_trades[i].apply(lambda x: x.decode('latin'))
+
+    columns = ['date', 'INDEX1', 'PROFILE', 'CONTRACT', 'CONTRACT1_START_DATE','TGP_PRICE', 'markit consensus', 'RULE']
+    columns_corrected = ['Date', 'INDEX1', 'PROFILE', 'CONTRACT', 'Start Date','TGP', 'Markit', 'Rule']
+            
+
+    kdb_trades = kdb_trades.loc[:,columns]
+    kdb_trades.columns = columns_corrected
+    kdb_trades["Index"] = kdb_trades["INDEX1"] + "_" + kdb_trades["PROFILE"]
+    kdb_trades = kdb_trades.loc[kdb_trades['Index'] == index,:] 
+    kdb_trades = mc.MoveToN(kdb_trades,'Index',2)
+    kdb_trades.drop(['INDEX1', 'PROFILE'], axis = 1, inplace = True)
+    
+    # Creation des contracts types
+    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".D"),"Contract type"] = "Day"
+    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".BOM"),"Contract type"] = "BOM"
+    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".W"),"Contract type"] = "Week"
+    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".WE"),"Contract type"] = "WE"
+    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".M"),"Contract type"] = "Month"
+    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".Q"),"Contract type"] = "Quarter"
+    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".CAL"),"Contract type"] = "Year"
+    kdb_trades.drop(['CONTRACT'], axis = 1, inplace = True)
+    kdb_trades = kdb_trades.set_index(['Date'])
+  
+    #cleaning de l'output 'NoRuleDefined'
+    kdb_trades = kdb_trades[kdb_trades['Rule']!="NoRuleDefined"]
+    kdb_trades["Start Date"] = pd.to_datetime(kdb_trades["Start Date"])
+    kdb_trades.drop_duplicates(subset = ["Start Date","Contract type"], inplace = True)
+    kdb_trades.dropna(subset = "Contract type", inplace = True)
+    kdb_trades = mc.MoveToN(kdb_trades,'Contract type', 3)
+
+
+    kdb_trades = kdb_trades.set_index("Start Date")
+    kdb_trades = kdb_trades[["Markit", "TGP"]]
+
+    return kdb_trades
