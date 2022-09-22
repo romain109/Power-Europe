@@ -56,10 +56,11 @@ def kdb(date:str, index:str):
     kdb_trades.drop(['INDEX1', 'PROFILE'], axis = 1, inplace = True)
     
     # Creation des contracts types
-    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".D"),"Contract type"] = "Day"
-    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".BOM"),"Contract type"] = "BOM"
-    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".W"),"Contract type"] = "Week"
-    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".WE"),"Contract type"] = "WE"
+    # a voir si utile ou non
+    #kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".D"),"Contract type"] = "Day"
+    #kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".BOM"),"Contract type"] = "BOM"
+    #kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".W"),"Contract type"] = "Week"
+    #kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".WE"),"Contract type"] = "WE"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".M"),"Contract type"] = "Month"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".Q"),"Contract type"] = "Quarter"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".CAL"),"Contract type"] = "Year"
