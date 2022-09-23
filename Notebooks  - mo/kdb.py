@@ -238,3 +238,27 @@ def Markit(date:str, index:str):
     kdb_trades = kdb_trades[["Markit", "TGP"]]
 
     return kdb_trades
+
+
+def auctions_kdb():
+
+    import datetime
+    # Fixture
+    start_date = datetime.date(2016, 1, 1)
+    end_date = datetime.date(2019, 12, 31)
+
+    index = "FRANCE"
+
+    q = qconnection.QConnection(host='kdb.dts.corp.local', port=8027,username='Administrator',password='', pandas=True)  
+   
+    q.open()
+    kdb_auctions = q.sendSync('{.ccgtPython.getCCGTData x}',
+                              f"Table=AUCTIONS, Start_Date={start_date}, End_Date={end_date}, Index={index}")
+    q.close()
+
+    dataframe = pd.DataFrame(kdb_auctions)
+    dataframe['TIMELINE'] = pd.to_datetime(dataframe['TIMELINE'])
+    dataframe.index = dataframe['TIMELINE']
+    dataframe = dataframe.sort_index()
+
+    return dataframe 
