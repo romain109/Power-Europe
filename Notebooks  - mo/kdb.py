@@ -227,14 +227,13 @@ def Shape(date:str, index:str, period:str):
     kdb_trades.drop(['CONTRACT'], axis = 1, inplace = True)
     kdb_trades = kdb_trades.set_index(['Date'])
   
-    #cleaning de l'output 'NoRuleDefined'
+    # cleaning de l'output 'NoRuleDefined'
     kdb_trades = kdb_trades[kdb_trades['Rule']!="NoRuleDefined"]
     kdb_trades["Start Date"] = pd.to_datetime(kdb_trades["Start Date"])
     kdb_trades.drop_duplicates(subset = ["Start Date","Contract type"], inplace = True)
     kdb_trades.dropna(subset = "Contract type", inplace = True)
     kdb_trades = mc.MoveToN(kdb_trades,'Contract type', 3)
     kdb_trades = kdb_trades.loc[kdb_trades["Contract type"] == period, :]
-
 
     kdb_trades = kdb_trades.set_index("Start Date")
     kdb_trades = kdb_trades[["Markit", "TGP"]]

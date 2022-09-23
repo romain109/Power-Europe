@@ -49,3 +49,10 @@ for i in bstr_cols:
 Alteryx.write(kdb_trades,1)#le num depend du nb de l'output, ici 1
 
 pd.merge(Markit, Markit_1, left_index=True, right_index=True, how = 'left')
+
+
+ma_series_forward_hourly = ma_serie_forward \
+.to_period("D") \
+.to_timestamp(how="end") \
+.resample("H") \
+.bfill() 
