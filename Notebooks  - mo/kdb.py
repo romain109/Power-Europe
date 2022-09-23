@@ -4,6 +4,7 @@ warnings.filterwarnings("ignore")
 import pandas as pd 
 import numpy as np 
 from datetime import datetime
+import datetime
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -185,7 +186,7 @@ def kdb_plot_fwd_curve(kdb_trades, period, Ice = True,  Skylight = True):
     return
 
 
-def Markit(date:str, index:str):
+def Shape(date:str, index:str, period:str):
     
     print (f"Data retrieved from kdb for {date}")
     kdb_date = date
@@ -216,10 +217,10 @@ def Markit(date:str, index:str):
     kdb_trades.drop(['INDEX1', 'PROFILE'], axis = 1, inplace = True)
     
     # Creation des contracts types
-    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".D"),"Contract type"] = "Day"
-    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".BOM"),"Contract type"] = "BOM"
-    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".W"),"Contract type"] = "Week"
-    kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".WE"),"Contract type"] = "WE"
+    #kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".D"),"Contract type"] = "Day"
+    #kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".BOM"),"Contract type"] = "BOM"
+    #kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".W"),"Contract type"] = "Week"
+    #kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".WE"),"Contract type"] = "WE"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".M"),"Contract type"] = "Month"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".Q"),"Contract type"] = "Quarter"
     kdb_trades.loc[kdb_trades["CONTRACT"].str.contains(".CAL"),"Contract type"] = "Year"
@@ -232,6 +233,7 @@ def Markit(date:str, index:str):
     kdb_trades.drop_duplicates(subset = ["Start Date","Contract type"], inplace = True)
     kdb_trades.dropna(subset = "Contract type", inplace = True)
     kdb_trades = mc.MoveToN(kdb_trades,'Contract type', 3)
+    kdb_trades = kdb_trades.loc[kdb_trades["Contract type"] == period, :]
 
 
     kdb_trades = kdb_trades.set_index("Start Date")
@@ -242,7 +244,7 @@ def Markit(date:str, index:str):
 
 def auctions_kdb():
 
-    import datetime
+    
     # Fixture
     start_date = datetime.date(2016, 1, 1)
     end_date = datetime.date(2019, 12, 31)
