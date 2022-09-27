@@ -8,7 +8,7 @@ import re
 import xlwings as xw
 from xlwings import Range
 
-folder_paths = [r"W:\UK\Risk_Control\Risk_Control_Private\MiddleOffice\GPE\Prices\Price Check Tool\Export\Mark-It Raw\2022 08"]
+folder_paths = [r"W:\UK\Risk_Control\Risk_Control_Private\MiddleOffice\GPE\Prices\Price Check Tool\Export\Mark-It Raw\2022 09"]
 
 for folder_path in folder_paths:
     onlyfiles = pd.DataFrame([f for f in listdir(folder_path) if isfile(join(folder_path, f))], columns = ["Files"])
@@ -36,6 +36,6 @@ markit_consensus = pd.concat(markit_consensus)
 markit_consensus = markit_consensus[markit_consensus['ns1:ContractGroup'] == 'European Power']
 markit_consensus['ns1:StandardDeviationPrice'].replace('', np.nan, inplace = True)
 markit_consensus.dropna(subset = 'ns1:StandardDeviationPrice')
-#markit_consensus.to_csv(r"C:\Users\rmolli\Desktop\Power-Europe\Data Mark-It Raw 07.csv", index = False)
+markit_consensus.to_csv(r"C:\Users\rmolli\Desktop\Power-Europe\Data Mark-It Raw 09.csv", index = False)
 print("travail fait")
 markit_consensus
