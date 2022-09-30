@@ -133,18 +133,18 @@ def kdb_plot(kdb_trades, period, Ice = True,  Skylight = True):
     plt.fill_between(kdb_trades["Start Date"], kdb_trades["Markit Std"], -kdb_trades["Markit Std"] , alpha = 0.1, color = 'g')
     plt.axhline(y = 0.2, color='r', linestyle=(0,(1,1)), label = " Current threshold")
     plt.axhline(y = -0.2, color='r', linestyle=(0,(1,1)))
-    plt.axhline(y = 12.42, color = 'royalblue', linestyle=(0,(1,1)))
-    plt.axhline(y = -12.42, color='royalblue', linestyle=(0,(1,1)))
+    plt.axhline(y = kdb_trades["Markit Std"].mean() , color = 'royalblue', linestyle=(0,(1,1)), label = "Markit std mean")
+    plt.axhline(y = -kdb_trades["Markit Std"].mean(), color='royalblue', linestyle=(0,(1,1)))
     plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 180))
 
     index = kdb_trades["Index"].iloc[0]
-    date = kdb_trades.index.iloc[0]
+    date = kdb_trades.index[0]
 
     plt.title(f"Std Deviation Price Validation - {index} - {period} - {date}")
     plt.xlabel("Maturity")
     plt.ylabel("Discrepancy €")
     plt.xticks(rotation=90)
-    plt.legend()
+    plt.legend() #loc = "upper left"
 
     return 
  

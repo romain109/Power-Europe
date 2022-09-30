@@ -56,3 +56,147 @@ ma_series_forward_hourly = ma_serie_forward \
 .to_timestamp(how="end") \
 .resample("H") \
 .bfill() 
+
+
+
+
+
+
+
+
+
+
+################ archive graphe sur amrkit avec la donnees csv 
+
+
+
+### recupearion donnes markit std sur septembre et plot graph
+os.chdir(r'C:\Users\rmolli\Desktop\Power-Europe\Data')
+Data = pd.read_csv(r"Data Mark-It Raw 09.csv")
+
+Data = Data[['ns1:ValuationDate','ns1:Currency',
+       'ns1:Underlying', 'ns1:Underlying1', 'ns1:Underlying2', 
+       'ns1:ClientPrice', 'ns1:CompositePrice', 'ns1:ConsensusPrice',
+       'ns1:EndDate',
+       'ns1:KurtosisPrice', 'ns1:NumberAcceptedPrice',
+       'ns1:Period','ns1:RangePrice', 'ns1:SkewnessPrice',
+       'ns1:StandardDeviationPrice', 'ns1:StartDate']]
+
+max_std = Data.loc[(Data['ns1:Underlying'] == 'FRENCH POWER - BASELOAD') & (Data['ns1:Period'] == 'Month') & (Data['ns1:StartDate'] == '2023-01-01 00:00:00')  ,:]
+max_std.tail()
+
+fig,ax = plt.subplots()
+fig.set_figheight(10)
+fig.set_figwidth(30)
+plt.rcParams["axes.grid"] = False
+
+ax.bar(max_std["ns1:ValuationDate"], max_std["ns1:NumberAcceptedPrice"], color = 'royalblue',  linewidth = 3)
+ax.set_xlabel('Valuation Date')
+ax.set_ylabel('Nb of participants')
+
+ax2 = ax.twinx()
+ax2.plot(max_std["ns1:ValuationDate"], max_std["ns1:StandardDeviationPrice"], color = 'indianred', linewidth = 3, label = "Nb of particioapnts")
+ax2.set_xlabel('Valuation Date')
+ax2.set_ylabel('Std Deviation')
+
+plt.axhline(y = max_std["ns1:StandardDeviationPrice"].mean() , color = 'g', linestyle=(0,(10,2)))
+plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 5))
+plt.title("Std Deviation Markit November 2022 contract");
+
+plt.show()
+
+
+
+# concatenation des 3 donnes
+os.chdir(r'..\Data')
+plt.rcParams["axes.grid"] = True
+Data = pd.read_csv(r"Data Mark-It Raw 05.csv")
+Data = Data[['ns1:ValuationDate','ns1:Currency',
+       'ns1:Underlying', 'ns1:Underlying1', 'ns1:Underlying2', 
+       'ns1:ClientPrice', 'ns1:CompositePrice', 'ns1:ConsensusPrice',
+       'ns1:EndDate',
+       'ns1:KurtosisPrice', 'ns1:NumberAcceptedPrice',
+       'ns1:Period','ns1:RangePrice', 'ns1:SkewnessPrice',
+       'ns1:StandardDeviationPrice', 'ns1:StartDate']]
+France_bl_05 = Data.loc[(Data['ns1:Underlying'] == 'FRENCH POWER - BASELOAD') & (Data['ns1:Period'] == 'Quarter') & (Data['ns1:StartDate'] == '2023-07-01 00:00:00')  ,:]
+
+Data = pd.read_csv(r"Data Mark-It Raw 06.csv")
+
+Data = Data[['ns1:ValuationDate','ns1:Currency',
+       'ns1:Underlying', 'ns1:Underlying1', 'ns1:Underlying2', 
+       'ns1:ClientPrice', 'ns1:CompositePrice', 'ns1:ConsensusPrice',
+       'ns1:EndDate',
+       'ns1:KurtosisPrice', 'ns1:NumberAcceptedPrice',
+       'ns1:Period','ns1:RangePrice', 'ns1:SkewnessPrice',
+       'ns1:StandardDeviationPrice', 'ns1:StartDate']]
+France_bl_06 = Data.loc[(Data['ns1:Underlying'] == 'FRENCH POWER - BASELOAD') & (Data['ns1:Period'] == 'Quarter') & (Data['ns1:StartDate'] == '2023-07-01 00:00:00')  ,:]
+
+Data = pd.read_csv(r"Data Mark-It Raw 07.csv")
+
+Data = Data[['ns1:ValuationDate','ns1:Currency',
+       'ns1:Underlying', 'ns1:Underlying1', 'ns1:Underlying2', 
+       'ns1:ClientPrice', 'ns1:CompositePrice', 'ns1:ConsensusPrice',
+       'ns1:EndDate',
+       'ns1:KurtosisPrice', 'ns1:NumberAcceptedPrice',
+       'ns1:Period','ns1:RangePrice', 'ns1:SkewnessPrice',
+       'ns1:StandardDeviationPrice', 'ns1:StartDate']]
+France_bl_07 = Data.loc[(Data['ns1:Underlying'] == 'FRENCH POWER - BASELOAD') & (Data['ns1:Period'] == 'Quarter') & (Data['ns1:StartDate'] == '2023-07-01 00:00:00')  ,:]
+
+#Data = pd.read_csv(r"Data Mark-It Raw 05.csv")
+
+France_bl = pd.concat([France_bl_05, France_bl_06, France_bl_07], ignore_index=True)
+
+ax = plt.figure(figsize = (30, 10), dpi = 650)
+plt.plot( France_bl["ns1:ValuationDate"], France_bl["ns1:StandardDeviationPrice"], label = "Std")
+plt.axhline(y = France_bl["ns1:StandardDeviationPrice"].mean() , color = 'g', linestyle=(0,(10,2)), label = "Std mean")
+plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 5))
+plt.title("Q3 2023 Std Deviation")
+plt.xlabel("Assessment Date")
+plt.ylabel("Std dev")
+
+#plt.text(44.5, 5,f'std mean = {round(France_bl["ns1:StandardDeviationPrice"].mean(),2)}', size = 11)
+plt.legend()
+
+
+os.chdir("../Pictures")
+plt.savefig("Q3 2023 Std Deviation.png")
+
+
+
+
+
+
+##### archive analyse MARKIT STD  fichier csv
+
+
+France_bl  = data.loc[(data["Index"] == "FRANCE_BL") & (data["Contract_type"] == "Month") , :]
+France_bl["Start Date"] = pd.to_datetime(France_bl["Start Date"])
+France_bl["Max"] = France_bl.loc[:, ["Ice", "Markit", "Skylight"]].max(axis = 1)
+France_bl["Min"]  = France_bl.loc[:, ["Ice", "Markit", "Skylight"]].min(axis = 1)
+
+France_bl["Validated with std"] = np.where( abs(France_bl["TGP"]  - France_bl["Markit"]) > France_bl["Markit Std"], 0, 1 )
+France_bl["Validated with 2 prices"] = np.where((France_bl["Max"]> France_bl["TGP"]) & (France_bl["TGP"]> France_bl["Min"]),1,0 )
+
+France_bl.dropna(subset = ["Markit"], inplace = True)
+France_bl = round(France_bl,3)
+France_bl.head()
+
+
+## archive plot
+plt.figure(figsize = (30, 10), dpi = 650)
+plt.bar(France_bl["Start Date"] , France_bl["Markit Delta"], width = 5 ,  label = "Markit Delta", color = 'royalblue')
+plt.plot(France_bl["Start Date"] , France_bl["Markit Std"], label = " + Markit Std",  color = 'g')
+plt.plot(France_bl["Start Date"] , -France_bl["Markit Std"], label = " - Markit Std",  color = 'g')
+plt.scatter(France_bl["Start Date"] , -France_bl["Ice Delta"], label = "Ice Delta",  color = 'dodgerblue', marker = 'o', s = 15)
+#plt.scatter(France_bl["Start Date"] , -France_bl["EEX Delta"], label = "EEX Delta",  color = 'crimson', marker = 'o', s = 15)
+plt.scatter(France_bl["Start Date"] , -France_bl["Skylight Delta"], label = "Skylight Delta",  color = 'g', marker = 'o', s = 15)
+plt.fill_between(France_bl["Start Date"], France_bl["Markit Std"], -France_bl["Markit Std"] , alpha = 0.1, color = 'g')
+plt.axhline(y=0.2, color='r', linestyle=(0,(1,1)), label = " Current threshold")
+plt.axhline(y=-0.2, color='r', linestyle=(0,(1,1)))
+plt.axhline(y=France_bl["Markit Std"].mean(), color = 'royalblue', linestyle=(0,(1,1)), label = "Markit std mean")
+plt.axhline(y=-France_bl["Markit Std"].mean(), color='royalblue', linestyle=(0,(1,1)))
+plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = 180))
+plt.title("Std Deviation Price Validation")
+plt.xlabel("Maturity")
+plt.ylabel("Discrepancy €")
+plt.legend();
