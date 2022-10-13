@@ -5,8 +5,8 @@ import pandas as pd
 import numpy as np 
 from datetime import datetime
 import datetime
-import matplotlib.dates as mdates
-import matplotlib.pyplot as plt
+#import matplotlib.dates as mdates
+#import matplotlib.pyplot as plt
 import seaborn as sns
 import re
 import movecolumn as mc
@@ -15,6 +15,7 @@ from qpython import qconnection
 def kdb(date:str, index:str):
 
     print (f"Data retrieved from kdb for {date}")
+
     kdb_date = date
     kdb_date = kdb_date.replace('-','.')
  
